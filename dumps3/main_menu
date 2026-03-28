@@ -1,0 +1,33 @@
+#!/bin/sh
+# This is the replacement for the main_menu binary.
+# OBD hardware will be checked immediately upon startup. We want to move
+# this check down into the ObdImplementation layer at some point...
+# Otherwise, head to the main menu and pretend like nothing happened.
+
+./obd_funcs.sh --no_fail_vbat # tests OBD hardware internally
+
+# if all else fails, run the main menu task itself
+/ap-app/bin/main_menu.bin $*
+
+
+#T:  Bus=01 Lev=01 Prnt=01 Port=00 Cnt=01 Dev#=  2 Spd=12  MxCh= 0
+#D:  Ver= 2.00 Cls=00(>ifc ) Sub=00 Prot=00 MxPS= 8 #Cfgs=  1
+#P:  Vendor=1a84 ProdID=0211 Rev= 0.36
+#S:  Manufacturer=COBB
+#S:  Product=COBB2 FU
+#S:  SerialNumber=0123456789AF
+#C:* #Ifs= 1 Cfg#= 1 Atr=c0 MxPwr=100mA
+#I:  If#= 0 Alt= 0 #EPs= 2 Cls=ff(vend.) Sub=00 Prot=00 Driver=(none)
+#E:  Ad=81(I) Atr=02(Bulk) MxPS=  64 Ivl=0ms
+#E:  Ad=02(O) Atr=02(Bulk) MxPS=  64 Ivl=0ms
+
+#T:  Bus=01 Lev=01 Prnt=01 Port=00 Cnt=01 Dev#=  2 Spd=12  MxCh= 0
+#D:  Ver= 1.10 Cls=02(comm.) Sub=00 Prot=00 MxPS= 8 #Cfgs=  1
+#P:  Vendor=03eb ProdID=6124 Rev= 1.10
+#C:* #Ifs= 2 Cfg#= 1 Atr=c0 MxPwr=  0mA
+#I:  If#= 0 Alt= 0 #EPs= 1 Cls=02(comm.) Sub=02 Prot=00 Driver=(none)
+#E:  Ad=83(I) Atr=03(Int.) MxPS=   8 Ivl=255ms
+#I:  If#= 1 Alt= 0 #EPs= 2 Cls=0a(data ) Sub=00 Prot=00 Driver=(none)
+#E:  Ad=01(O) Atr=02(Bulk) MxPS=  64 Ivl=0ms
+#E:  Ad=82(I) Atr=02(Bulk) MxPS=  64 Ivl=0ms
+

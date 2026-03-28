@@ -1,0 +1,10 @@
+proc		/proc		proc		defaults	0	0
+sysfs		/sys		sysfs		defaults	0	0
+tmpfs		/tmp		tmpfs		defaults	0	0
+tmpfs		/var		tmpfs		defaults	0	0
+tmpfs   /.gnupg tmpfs   defaults,mode=0700 0 0
+/dev/mtdblock10 / squashfs defaults 0 0
+/dev/mtdblock11 /ap-app squashfs defaults 0 0
+/dev/mtdblock12 /ap-data squashfs defaults 0 0
+ubi3:user /user ubifs defaults,ro,noauto 0 0
+debugfs /sys/kernel/debug debugfs defaults 0 0

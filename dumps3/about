@@ -1,0 +1,11 @@
+#!/bin/sh
+
+. ./sh_funcs.sh
+
+# figure out which dongle is attached
+dongle_ident DONGLE_INFO
+if [ "$DONGLE_INFO" != "" ]; then 
+  export AP_DONGLE=$DONGLE_INFO 
+fi
+
+./about.bin

@@ -1,0 +1,7 @@
+dev:    size   erasesize  name
+mtd0: 01400000 00020000 "gpmi-nfc-0-boot"
+mtd1: 0ec00000 00020000 "gpmi-nfc-general-use"
+mtd2: 00020000 00020000 "settings-a"
+mtd3: 00020000 00020000 "settings-b"
+mtd4: 00020000 00020000 "settings-c"
+mtd5: 00020000 00020000 "0000000000000

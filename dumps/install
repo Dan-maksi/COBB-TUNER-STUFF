@@ -1,0 +1,428 @@
+#!/bin/sh
+#
+# identify what is what
+# select a valid map
+# save off the stock stuff
+# flash it lots
+# set the system to installed
+
+# import useful stuff
+. ./subaru_funcs.sh
+
+# ERROR CODES for install.sh
+ERR_TRUE_ROM=2008 #@ Failed to copy COBB ROM file
+ERR_AP_SET_VEHICLE=2019 #@ Could not set vehicle information in AccessPORT memory
+ERR_AP_SET_STATE=2020 #@ Could not set installed state in AccessPORT
+ERR_AP_IDENT=2021 #@ Could not set AccessPORT identifier
+
+sanity_check_env
+
+# tmp files for info passing
+TMP_MAPSEL=/tmp/AP_MAPSEL
+TMP_IDENTIFY=/tmp/AP_IDENTIFY
+TMP_ROM=/tmp/AP_ROM
+TMP_VENDOR=/tmp/AP_VENDOR
+TMP_STUBRATE=/tmp/ECU_STUBRATE
+
+# AP_STATE values found in DeviceState.h::e_DeviceState
+# Redefined for shell in sh_funcs.sh
+if [ ! "$AP_STATE" -eq "$DS_UNINSTALLED" -a ! "$AP_STATE" -eq "$DS_UNKNOWN_ROM" ]; then
+  showInfo "UI_INFO_ERR_BAD_STATE"
+  getUserSelection
+  exit 0
+fi
+
+ecu_state=$AP_STATE
+
+verifyIgnition
+
+# identify the subaru
+ident_output_arg="--output=$TMP_IDENTIFY"
+ident_args="$ident_output_arg $(get_comm_mode_args)"
+execute "./subaru_identify --vehicle --more_info $ident_args" "subaru_identify cancelled"
+
+ret=$? # keep the return code around
+chkret $ret "subaru_identify cancelled" # bail on negative returns
+
+if [ $ret -eq 1 ]; then
+  # If the AP is not a SUB06/7, enter unknown rom state. 
+  # SUB06/7 should just reload main menu in uninstalled state.
+  if [ $AP_MODEL -ne 6 -a $AP_MODEL -ne 7 ]; then
+    # change the state to ST_UNKNOWN_ROM
+    sys_exec "./writeeeprom --state=3 --quiet" "writeeeprom cancelled"
+    #reload the GUI and the user_dump option should be there now
+  else
+    get_out_val $TMP_IDENTIFY offer_partial_dump
+    if [ "$offer_partial_dump" == "true" ]; then
+      get_out_val $TMP_IDENTIFY unsupported_id
+      showInfo "UI_INFO_WARN_IDENTIFY_OFFER_DUMP" "$unsupported_id"
+      getUserSelection
+      # User selected OK
+      if [ $? -eq 1 ]; then
+        ident_args="--output=$TMP_IDENTIFY --calid --flash $(get_comm_mode_args)"
+        execute "./subaru_identify $ident_args" "subaru_identify $ident_args cancelled"
+        get_out_val $TMP_IDENTIFY cpu
+        get_out_val $TMP_IDENTIFY protocol
+        get_out_val $TMP_IDENTIFY calid
+
+        dump_and_save_rom "$cpu" "" "$protocol" "$calid" "$AP_UNINSTALLED" "$PARTIAL_DUMP_ONLY"
+        showInfo "UI_INFO_DUMP_SUCCESS"
+        getUserSelection
+      fi
+      rm $TMP_IDENTIFY
+    fi
+  fi
+  exit 1
+fi
+
+get_out_val $TMP_IDENTIFY vehicle
+
+# even though the vehicle may identify, it may not be supported in firmware
+if [ ! -e "$AP_CFG_PATH/$vehicle.cfg" ]; then
+  showInfo "UI_INFO_ERR_VEHICLE_NOT_SUPPORTED" "$vehicle" "$AP_PART_NUM"
+  getUserSelection
+  rm $TMP_IDENTIFY # no sys_exec
+  exit 0
+fi
+
+# need these for many operations
+get_cfg_val $vehicle cpu
+get_cfg_val $vehicle protocol
+get_cfg_val $vehicle fw_id       # firmware id
+
+# If the vehicle id has a cons_patch, a side effect is that the calid (calibration id) is 
+#    different between the true ROM and live ROM. This means the calid should not be 
+#    requested from the ECU.The calid returned from the ECU does not match the calid for the vehicle id
+#    that it actually is. This means previous installs are incorrectly dumped and saved as the user.rom
+get_cfg_val $vehicle cons_patch
+
+# If the ECU supports CAN (SUB003 and newer) and there is no difference in calid between the true ROM and live ROM
+if [ "$AP_MODEL" -ge 3 -a -z "$cons_patch" ]; then
+  execute "./subaru_identify --calid $ident_args" "subaru_identify cancelled"
+  get_out_val $TMP_IDENTIFY calid
+else
+  # Use a preset calid from the config file if there's no support for reading the calid from the ECU
+  calid=$fw_id
+fi
+
+# get vehicle variants and define $variants
+get_vehicle_variants $vehicle
+
+# loop through each vehicle variant and check for a known calid
+#   if a known calid is found, read the serial number
+#   if the serial number is set, it is a previous install
+PREV_INSTALL=0 # previous installations will get overridden
+BAD_USER_ROM=0
+for variant in $variants; do
+  get_cfg_val $variant fw_id
+  echo "testing $variant for previous install"
+  if [ "$calid" != "$fw_id" ]; then
+    # mismatched calids mean no previous install for this variant
+    echo "not active calid for $variant"
+    continue
+  fi
+
+  # for the newest SSMV+ vehicles, the serial number is only in ROM
+  # older vehicles have the serial number at RAM locations and read using KLINE!
+  if [ "$protocol" == "SSMV" -o "$protocol" == "SSMVI" -o "$protocol" == "LEVORG" ]; then
+    get_cfg_val $variant serial_rom
+    serial_arg="--serial=$serial_rom $(get_comm_mode_args)"
+  else
+    get_cfg_val $variant serial_ram
+    serial_arg="--serial=$serial_ram"
+  fi
+
+  # some vehicles are never used for install and, as such, have no serial
+  if [ -z "$serial_rom" -a -z "$serial_ram" ]; then
+    echo "no known serial location for $variant"
+    continue
+  fi
+
+  execute "./subaru_identify --quiet $ident_output_arg $serial_arg" "subaru_identify $ident_args $serial_arg cancelled"
+  get_out_val $TMP_IDENTIFY serial
+
+  if [ "$serial" -eq 0 -o "$serial" -eq -1 ]; then
+    # empty serial means no previous install for this variant
+    echo "no serial set for $variant"
+  else
+    # populated serial means previous install for this variant
+    showInfo "UI_INFO_PREV_INSTALL"
+    getUserSelection
+    if [ $? -eq 1 ]; then # OK
+      PREV_INSTALL=1
+    else # CANCEL
+      rm $TMP_IDENTIFY # no sys_exec
+      exit 0
+    fi
+    ecu_state=1  # the ECU has a previous install on it!
+    break
+  fi
+done
+rm $TMP_IDENTIFY # no sys_exec
+
+# if we release firmware without OTS maps, display message directing users to website
+#   enable with "map_dialog=true" in ECU cfg
+get_cfg_val $vehicle map_dialog
+if [ "true" == "$map_dialog" ]; then
+  showInfo "UI_INFO_ONLINE_MAPS"
+  getUserSelection
+fi
+
+# make sure the user folder is ready for maps
+prepare_user_folders
+
+# clear previous maps
+clear_prev_maps
+
+# select a map
+map_select_args="--output=$TMP_MAPSEL"
+MAP_DIRS="--dir=$AP_USER_MAPS"
+
+# add all variants as possible vehicles
+for variant in $variants; do
+  map_select_args="$map_select_args --filter=$variant"
+  MAP_DIRS="$MAP_DIRS --dir=${AP_DATA_MAPS}$variant"
+done
+
+map_select_args="$map_select_args $(GetRecalledVehicleIDParameters)"
+
+execute "common_map_select $MAP_DIRS $map_select_args" "map_select cancelled"
+INSTALL_MAP="`cat $TMP_MAPSEL`"
+rm $TMP_MAPSEL # no sys_exec
+
+# set vehicle from map selection
+map_props -o$TMP_MAP_PROPS --map="$INSTALL_MAP" -a
+get_named_out_val $TMP_MAP_PROPS vehicle vehicleid
+get_named_out_val $TMP_MAP_PROPS realtime_vendor vendor
+
+# check and warn the user if flashing an outdated map!
+deprecated_warning_check $vehicle
+
+# if we release beta vehicle support and want to warn users before they flash those ROMs
+#   enable with "beta_vehicle=true" in ECU cfg
+get_cfg_val $vehicle beta_vehicle
+if [ "true" == "$beta_vehicle" ]; then
+  showInfo "UI_INFO_WARN_BETA_VEHICLE"
+  getUserSelection
+  if [ $? -lt 1 ]; then
+      exit 0 # stop executing
+    fi
+fi
+
+# realtime vehicles need a reset before the flash
+reset_realtime $vehicle
+
+showInstallDangerMessage
+
+# verify basic flash conditions met! (key on, engine off, test mode, etc.)
+verifyFlashConditions
+
+# Set up our random stub encryption key
+RANDOM=$RANDOM # re-seed the PRNG for the stub encryption key
+ENCKEY=$RANDOM # generate the stub encryption key
+
+check_for_stub
+stub_arg=""
+if [ "$needs_stub" -eq 1 ]; then
+  stub_arg="--stub=$stub"
+fi
+
+# verify we are still attached to the same ECU (needs to be done before stub)
+verifyECUMatch "subaru_identify" "$ident_args --vehicle --quiet" "$TMP_IDENTIFY" "vehicle" "$variants"
+
+# see if we should skip the dump step
+skip_dump=$SHELL_FAILURE
+
+get_cfg_val $vehicle disable_dump
+if [ "true" == "$disable_dump" -o "$PREV_INSTALL" -ne 0 ]; then
+  skip_dump=$SHELL_SUCCESS
+fi
+
+if [ "$SHELL_SUCCESS" != "$skip_dump" ]; then
+  # dump the rom
+  execute "./subaru_flash --uninstalled --cpu=$cpu --dump $stub_arg --output=$TMP_ROM --protocol=$protocol --enckey=$ENCKEY --save_rate_to=$TMP_STUBRATE" "subaru_flash cancelled"
+
+  # check the rom for marriage
+  get_cfg_val $vehicle serial_rom  # serial number offset in ROM
+
+  # CAN ECUs support reading of calid while older ECUs do not and must use rom_validator below
+  if [ "$protocol" == "SSMII" -o "$protocol" == "SSMIII" ]; then
+    ./subaru_rom_validator --cpu=$cpu --fwid=$fw_id --snoffset=$serial_rom --input=$TMP_ROM
+    RET=$?
+
+    # return values found in RomValidator.h::e_RomValidCodes
+    if [ $RET -gt 127 ]; then
+      echo "subaru_rom_validator cancelled"
+      exit 0
+    elif [ $RET -gt 0 ]; then
+      showInfo "UI_INFO_PREV_INSTALL"
+      getUserSelection
+      if [ $? -eq 1 ]; then # OK
+        PREV_INSTALL=1
+      else # CANCEL
+        exit 0
+      fi
+    fi
+  fi
+fi
+
+# sanity test the dumped user ROM for correctness
+# this call will do nothing if the rom is empty (skipped the dump)
+check_rom_integrity "$TMP_ROM"
+
+# Fetch the known good ROM, set and define REF_ROM for set_user_rom and map2rom reference
+get_base_rom $vehicle REF_ROM 
+
+if [ "$SHELL_FAILURE" == "$skip_dump" ]; then
+  # save the dumped "stock" rom 
+  # Checksum and set the ROM as the user's ROM
+  set_user_rom "$TMP_ROM" "$REF_ROM" "$AP_USER_ROM"
+  if [ $? -ne 0 ]; then
+    showInfo "UI_INFO_USERROM_CORRUPT"
+    getUserSelection
+    if [ ! $? -eq 1 ]; then # CANCEL
+      exit 0
+    fi
+
+    rm_user_rom "$AP_USER_ROM"
+  fi
+else
+  # no dumped ROM. We need to use the $REF_ROM as $TMP_ROM for flashing
+  # save off the TMP/REF rom as the user rom to enhance the user experience
+  cp "$REF_ROM" "$TMP_ROM"
+  set_user_rom "$TMP_ROM" "$REF_ROM" "$AP_USER_ROM"
+fi
+
+# build the rom from map selection
+showBusy "UI_WAIT_BUILDING_FLASH"
+
+#need to see if the vehicle has an alternate stock rom checksum (FXT_13, WRXM_13)
+get_cfg_val $vehicle alt_stock_chksum
+ALT_CHKSUM=""
+if [ ! -z "$alt_stock_chksum" ]; then
+  ALT_CHKSUM="--alt_chksum=$alt_stock_chksum"
+fi
+
+#Set base rom for consolidation of '13 and '14 roms
+patch_cons_rom $vehicle REF_ROM
+
+execute "./map2rom --map=\"$INSTALL_MAP\" --stock=$REF_ROM --rom=$TMP_ROM --vendor=$TMP_VENDOR $ALT_CHKSUM" "map2rom - ROM image failed"
+get_out_val $TMP_VENDOR vendor
+rm $TMP_VENDOR # no sys_exec
+
+# User ROM adjustements for flex fuel fixed ethanol
+PATCHED_SHORT_DESC=""
+PATCHED_LONG_DESC=""
+subaru_fixed_ethanol_adjustments "$vehicle"
+
+# "marry" the rom
+get_cfg_val $vehicle serial_rom
+get_cfg_val $vehicle vendor_rom
+execute "./prep_rom --code=$vendor --input=$TMP_ROM --snumber=$AP_SERIAL --output=$TMP_ROM --snoffset=$serial_rom --vcoffset=$vendor_rom" "prep_rom cancelled"
+
+# "marry" the ap
+get_cfg_val $vehicle ap_ident
+if [ ! -z "$ap_ident" ]; then
+  sys_exec "./subaru_ap_ident --address=$ap_ident --input=$TMP_ROM --lock=$AP_LOCK --stock=$REF_ROM" "subaru_ap_ident cancelled" $ERR_AP_IDENT
+fi
+
+# set the vehicle (needed by recovery)
+sys_exec "./writeeeprom --vehicle=$vehicle --quiet" "writeeeprom cancelled" $ERR_AP_SET_VEHICLE
+
+# Due to an insufficient checksum algorithm in the HC16 boot stub, and relatively quick flash times, the HC16 will be flashed from top to bottom.
+flash_args=""
+if [ "$cpu" == "HC16" ]; then
+  flash_args="--full_flash"
+fi
+
+determine_if_doing_double_flash "$vehicle"
+doing_double_flash=$?
+
+if [ "$protocol" == "LEVORG" ]; then
+  # VB WRX comms set AP state right after flashing
+  flash_args="--future_state=Installed"
+  if [ $doing_double_flash == $SHELL_FAILURE ]; then
+    flash_args="$flash_args --full_flash"
+  fi
+fi
+
+# Get any alternate fast flash and checksum correction locations
+flash_args="$flash_args $(get_offset_locations)"
+
+start_flash_log
+
+if [ $doing_double_flash -eq $SHELL_SUCCESS ]; then
+  double_flash_additional_args="--full_flash"
+  if [ "$PREV_INSTALL" -eq 1 -a "$BAD_USER_ROM" -ne 1 ]; then
+    double_flash_additional_args="$double_flash_additional_args --installed"
+  else
+    double_flash_additional_args="$double_flash_additional_args --uninstalled"
+  fi
+  do_double_flash "$vehicle" "$cpu" "$ENCKEY" "$protocol" "$TMP_STUBRATE" "$double_flash_additional_args"
+
+fi
+
+# Also See/change change_map.sh and build_ap_data.sh
+if [[ $AP_MODEL -eq 7 ]] || [[ $AP_MODEL -eq 6 ]]; then
+  # We want to force ecdh as this should be an updated bootloader by this point (if Levorg comms vehicle)
+  flash_args="$flash_args --force_ecdh"
+fi
+
+local log_message="Second (map) flash"
+flash_args="$flash_args --message=\"$log_message\""
+
+# now flash this guy
+if [ "$PREV_INSTALL" -eq 1 -a "$BAD_USER_ROM" -ne 1 ] || [ "$doing_double_flash" -eq "$SHELL_SUCCESS" ]; then
+  # this is to catch the case where the download was skipped
+  # a bug is going to crop up here eventually
+  # --uninstalled may not be the correct mode
+
+  execute "./subaru_flash --cpu=$cpu --enckey=$ENCKEY --file=$TMP_ROM --flash --protocol=$protocol $stub_arg --installed --save_rate_to=$TMP_STUBRATE $flash_args" "subaru_flash cancelled" 1
+else
+  ECU_STUBRATE=`cat $TMP_STUBRATE`
+  echo "install: stub rate = [$ECU_STUBRATE]"
+
+  # RE: --force_ecdh -> It _should_ be impossible to hit this case with a Levorg vehicle. If we don't detect the updated bootloader then its uninstalled so we should double flash, and previous install should do the above flash.
+  # However for the sake of safety we include the --force_ecdh arg just in case (its in $flash_args atm)
+  execute "./subaru_flash --cpu=$cpu --enckey=$ENCKEY --file=$TMP_ROM --flash --protocol=$protocol --uninstalled --baud=$ECU_STUBRATE $flash_args" "subaru_flash cancelled" 1
+fi
+
+if [ -e "$TMP_ROM" ]; then
+  rm $TMP_ROM # no sys_exec
+fi
+if [ -e "$TMP_STUBRATE" ]; then
+  rm $TMP_STUBRATE
+fi
+
+# set the device state to installed
+# state values found in DeviceState.h::e_DeviceState
+sys_exec "./writeeeprom --state=1 --quiet" "writeeeprom cancelled" $ERR_AP_SET_STATE
+
+# copy dist maps
+cp_dist_maps $vehicle # this will also copy all variants that exist
+
+# set current maps and cache reflash info
+set_cur_maps "$INSTALL_MAP" "$INSTALL_MAP"
+cache_reflash_props
+# disable any per vehicle AP features
+verify_vehicle_features
+
+user_remount_rw
+echo $vehicle > $AP_USER_PREV # store the last installed vehicle
+
+# set patched map descriptions, checking the short desc should be enough
+if [ -z "$PATCHED_SHORT_DESC" ]; then
+  echo "emptying patch desc"
+  # ensure these are empty
+  set_out_val "$AP_USER_MAPNAMES" "patched_short_desc" ""
+  set_out_val "$AP_USER_MAPNAMES" "patched_long_desc" ""
+else
+  echo "FILLING patch desc"
+  set_out_val "$AP_USER_MAPNAMES" "patched_short_desc" "$PATCHED_SHORT_DESC"
+  set_out_val "$AP_USER_MAPNAMES" "patched_long_desc" ", $PATCHED_LONG_DESC"
+fi
+user_remount_ro
+
+flash_success "UI_INFO_INSTALL_SUCCESS"
+
+exit 1

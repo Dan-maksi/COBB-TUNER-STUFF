@@ -1,0 +1,166 @@
+#!/bin/sh
+#
+# identify what is what
+# select a valid map
+# save off the stock stuff
+# flash it lots
+# set the system to installed
+
+# import useful stuff
+. ./subaru_funcs.sh
+
+# ERROR CODES for install.sh
+ERR_TRUE_ROM=2008 #@ Failed to copy COBB ROM file
+ERR_AP_SET_VEHICLE=2019 #@ Could not set vehicle information in AccessPORT memory
+ERR_AP_SET_STATE=2020 #@ Could not set installed state in AccessPORT
+ERR_AP_IDENT=2021 #@ Could not set AccessPORT identifier
+
+sanity_check_env
+
+# tmp files for info passing
+TMP_MAPSEL=/tmp/AP_MAPSEL
+TMP_IDENTIFY=/tmp/AP_IDENTIFY
+TMP_ROM=/tmp/AP_ROM
+TMP_VENDOR=/tmp/AP_VENDOR
+TMP_STUBRATE=/tmp/ECU_STUBRATE
+
+# AP_STATE values found in DeviceState.h::e_DeviceState
+# Redefined for shell in sh_funcs.sh
+if [ ! "$AP_STATE" -eq "$DS_UNINSTALLED" -a ! "$AP_STATE" -eq "$DS_UNKNOWN_ROM" ]; then
+  showInfo "UI_INFO_ERR_BAD_STATE"
+  getUserSelection
+  exit 0
+fi
+
+ecu_state=$AP_STATE
+
+verifyIgnition
+
+# identify the subaru
+ident_output_arg="--output=$TMP_IDENTIFY"
+ident_args="$ident_output_arg $(get_comm_mode_args)"
+execute "./subaru_identify --vehicle --more_info $ident_args" "subaru_identify cancelled"
+
+ret=$? # keep the return code around
+chkret $ret "subaru_identify cancelled" # bail on negative returns
+
+if [ $ret -eq 1 ]; then
+  # If the AP iif [ "$protocol" == "SSMV" -o "$protocol" == "SSMVI" -o "$protocol" == "LEVORG" ]; then
+    get_cfg_val $AP_VEHICLE serial_rom
+    if [ -z "$serial_rom" ]; then
+      get_cfg_val $vehicle serial_rom
+    fi
+    serial_args="--state=$AP_STATE --serial=$serial_rom $ident_args"
+  else
+    get_cfg_val $AP_VEHICLE serial_ram
+    if [ -z "$serial_ram" ]; then
+      get_cfg_val $vehicle serial_ram
+    fi
+    serial_args="--serial=$serial_ram $ident_output_arg"
+  fi
+
+  execute "./subaru_identify --quiet $serial_args" "subaru_identify --quiet $serial_args cancelled"
+  get_out_val $TMP_IDENTIFY serial
+  rm $TMP_IDENTIFY # no sys_exec
+
+  # is this the right vehicle?
+  verify_serial $serial 0
+
+elif [ "$AP_STATE" -eq "$DS_RECOVERY" ]; then
+  echo "recovery mode"
+  MODE=recovery
+
+  showInfo "UI_INFO_RECOVERY_IGN_OFF_ON"
+  getUserSelection
+  if [ ! $? -eq 1 ]; then
+    exit 0
+  fi
+
+  # pretend the vehicle was identified
+  vehicle=$AP_VEHICLE
+else
+  showInfo "UI_INFO_ERR_BAD_STATE"
+  getUserSelection
+  exit 0
+fi
+
+
+disable_dump=""
+get_cfg_val $vehicle disable_dump
+if [ "true" != "$disable_dump" ]; then
+  # get the "stock" rom to unmarry
+  get_base_rom $vehicle REF_ROM # define REF_ROM for get_user_rom reference
+  if ! get_user_rom "$AP_USER_ROM" "$REF_ROM" "$TMP_ROM"; then
+    showInfo "UI_INFO_USERROM_CORRUPT"
+    getUserSelection
+    if [ $? -eq 1 ]; then
+      # use the supplied rom as "stock" and store as $TMP_ROM
+      fetch_uninstall_rom "$vehicle"
+      # sanity test COBB ROMs and correct checksums if needed
+      flash_args=""
+    else
+      exit 0 # abort abort abort
+    fi
+  fi
+else
+  # There's no user rom, or we are ignoring it. Instead just fetch the 
+  # latest stored rom for this vehicle as $TMP_ROM
+  fetch_uninstall_rom "$vehicle"
+  flash_args=""
+fi
+
+get_cfg_val $AP_VEHICLE cpu
+get_cfg_val $AP_VEHICLE protocol
+
+# presumably we are going to completely restore the unmodified user ROM, regardless
+#  of its integrity (i.e. make ZERO changes to it)
+# SUB06 and 007 are excluded, because subaru_flash for levorg always expected a trimmed/checksummed rom
+if [ "$AP_MODEL" -ne 6 -a "$AP_MODEL" -ne 7 ]; then
+  flash_args="--skip_checksum"
+fi
+
+if [ "$cpu" == "HC16" -o "$protocol" == "SSMV" -o "$protocol" == "SSMVI" -o "$protocol" == "LEVORG" ]; then
+  flash_args="$flash_args --full_flash"
+fi
+
+# verify basic flash conditions met! (key on, engine off, test mode, etc.)
+verifyFlashConditions
+
+# Set up our random stub encryption key
+RANDOM=$RANDOM # re-seed the PRNG for the stub encryption key
+ENCKEY=$RANDOM # generate the stub encryption key
+
+check_for_stub
+stub_arg=""
+if [ "$needs_stub" -eq 1 ]; then
+  stub_arg="--stub=$stub" 
+fi
+
+# Do a final serial number check to make sure they didn't switch vehicles.
+verifyECUMatch "subaru_identify" "$serial_args --quiet" "$TMP_IDENTIFY" "serial"
+
+if [ "$protocol" == "LEVORG" ]; then
+  # VB WRX comms set AP state right after flashing
+  flash_args="$flash_args --future_state=Uninstalled"
+fi
+
+start_flash_log
+# flash the rom
+
+execute "./subaru_flash --cpu=$cpu --enckey=$ENCKEY --file=$TMP_ROM --flash --protocol=$protocol $stub_arg --$MODE $flash_args --uninstalling" "subaru_flash cancelled" 1
+
+rm $TMP_ROM # no sys_exec
+
+# set the device state back to uninstalled
+# state values found in DeviceState.h::e_DeviceState
+sys_exec "./writeeeprom --state=0 --vehicle=? --quiet" "writeeeprom cancelled" $ERR_SET_AP_STATE
+user_remount_rw
+execute "./cur_map --working=$AP_USER_DATA --clear --realtime --reflash --quiet" "cur_map cancelled"
+rm $USER_REFLASH_PROPS
+rm_user_rom $AP_USER_ROM
+# maps are cleared on install
+user_remount_ro
+
+flash_success "UI_INFO_UNINSTALL_SUCCESS"
+
+exit 1

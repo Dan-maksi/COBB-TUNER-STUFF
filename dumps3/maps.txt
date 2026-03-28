@@ -1,0 +1,160 @@
+00010000-000a8000 r-xp 00000000 1f:0b 19         /ap-app/bin/gui
+000b7000-000b8000 r-xp 00097000 1f:0b 19         /ap-app/bin/gui
+000b8000-000b9000 rwxp 00098000 1f:0b 19         /ap-app/bin/gui
+000b9000-003ae000 rwxp 00000000 00:00 0          [heap]
+40000000-40020000 r-xp 00000000 1f:0a 99         /lib/ld-2.23.so
+40020000-4002f000 rwxp 00000000 00:00 0 
+4002f000-40030000 r-xp 0001f000 1f:0a 99         /lib/ld-2.23.so
+40030000-40031000 rwxp 00020000 1f:0a 99         /lib/ld-2.23.so
+40031000-4007a000 r-xp 00000000 1f:0b 221        /ap-app/lib/libUtil.so
+4007a000-40089000 ---p 00049000 1f:0b 221        /ap-app/lib/libUtil.so
+40089000-4008a000 r-xp 00048000 1f:0b 221        /ap-app/lib/libUtil.so
+4008a000-4008b000 rwxp 00049000 1f:0b 221        /ap-app/lib/libUtil.so
+4008b000-400a1000 r-xp 00000000 1f:0b 218        /ap-app/lib/libPackaging.so
+400a1000-400b0000 ---p 00016000 1f:0b 218        /ap-app/lib/libPackaging.so
+400b0000-400b1000 r-xp 00015000 1f:0b 218        /ap-app/lib/libPackaging.so
+400b1000-400b2000 rwxp 00016000 1f:0b 218        /ap-app/lib/libPackaging.so
+400b2000-4032f000 r-xp 00000000 1f:0b 214        /ap-app/lib/libExtPackaging.so
+4032f000-4033e000 ---p 0027d000 1f:0b 214        /ap-app/lib/libExtPackaging.so
+4033e000-40358000 r-xp 0027c000 1f:0b 214        /ap-app/lib/libExtPackaging.so
+40358000-4035b000 rwxp 00296000 1f:0b 214        /ap-app/lib/libExtPackaging.so
+4035b000-4035e000 rwxp 00000000 00:00 0 
+4035e000-40379000 r-xp 00000000 1f:0b 220        /ap-app/lib/libUnits.so
+40379000-40389000 ---p 0001b000 1f:0b 220        /ap-app/lib/libUnits.so
+40389000-4038a000 r-xp 0001b000 1f:0b 220        /ap-app/lib/libUnits.so
+4038a000-4038b000 rwxp 0001c000 1f:0b 220        /ap-app/lib/libUnits.so
+4038b000-40506000 r-xp 00000000 1f:0b 237        /ap-app/lib/libvehicle.so
+40506000-40516000 ---p 0017b000 1f:0b 237        /ap-app/lib/libvehicle.so
+40516000-4051a000 r-xp 0017b000 1f:0b 237        /ap-app/lib/libvehicle.so
+4051a000-4051d000 rwxp 0017f000 1f:0b 237        /ap-app/lib/libvehicle.so
+4051d000-4051e000 rwxp 00000000 00:00 0 
+4051e000-4052f000 r-xp 00000000 1f:0b 230        /ap-app/lib/libtinyxml.so
+4052f000-4053e000 ---p 00011000 1f:0b 230        /ap-app/lib/libtinyxml.so
+4053e000-4053f000 r-xp 00010000 1f:0b 230        /ap-app/lib/libtinyxml.so
+4053f000-40540000 rwxp 00011000 1f:0b 230        /ap-app/lib/libtinyxml.so
+40540000-4054a000 r-xp 00000000 1f:0b 229        /ap-app/lib/libparser.so
+4054a000-40559000 ---p 0000a000 1f:0b 229        /ap-app/lib/libparser.so
+40559000-4055a000 r-xp 00009000 1f:0b 229        /ap-app/lib/libparser.so
+4055a000-4055b000 rwxp 0000a000 1f:0b 229        /ap-app/lib/libparser.so
+4055b000-40574000 r-xp 00000000 1f:0b 222        /ap-app/lib/libap.so
+40574000-40583000 ---p 00019000 1f:0b 222        /ap-app/lib/libap.so
+40583000-40584000 r-xp 00018000 1f:0b 222        /ap-app/lib/libap.so
+40584000-40585000 rwxp 00019000 1f:0b 222        /ap-app/lib/libap.so
+40585000-406ab000 r-xp 00000000 1f:0b 224        /ap-app/lib/libboost_serialization-arm-1_33_1.so.1.33.1
+406ab000-406ba000 ---p 00126000 1f:0b 224        /ap-app/lib/libboost_serialization-arm-1_33_1.so.1.33.1
+406ba000-406bc000 r-xp 00125000 1f:0b 224        /ap-app/lib/libboost_serialization-arm-1_33_1.so.1.33.1
+406bc000-406c0000 rwxp 00127000 1f:0b 224        /ap-app/lib/libboost_serialization-arm-1_33_1.so.1.33.1
+406c0000-40745000 r-xp 00000000 1f:0a 192        /usr/local/lib/libdirectfb-1.4.so.5.0.8
+40745000-4074c000 ---p 00085000 1f:0a 192        /usr/local/lib/libdirectfb-1.4.so.5.0.8
+4074c000-4074e000 r-xp 00084000 1f:0a 192        /usr/local/lib/libdirectfb-1.4.so.5.0.8
+4074e000-40750000 rwxp 00086000 1f:0a 192        /usr/local/lib/libdirectfb-1.4.so.5.0.8
+40750000-40751000 rwxp 00000000 00:00 0 
+40751000-40807000 r-xp 00000000 1f:0a 196        /usr/local/lib/libfreetype.so.6.6.0
+40807000-4080f000 ---p 000b6000 1f:0a 196        /usr/local/lib/libfreetype.so.6.6.0
+4080f000-40812000 r-xp 000b6000 1f:0a 196        /usr/local/lib/libfreetype.so.6.6.0
+40812000-40813000 rwxp 000b9000 1f:0a 196        /usr/local/lib/libfreetype.so.6.6.0
+40813000-4081a000 r-xp 00000000 1f:0a 198        /usr/local/lib/libfusion-1.4.so.5.0.8
+4081a000-40821000 ---p 00007000 1f:0a 198        /usr/local/lib/libfusion-1.4.so.5.0.8
+40821000-40822000 r-xp 00006000 1f:0a 198        /usr/local/lib/libfusion-1.4.so.5.0.8
+40822000-40823000 rwxp 00007000 1f:0a 198        /usr/local/lib/libfusion-1.4.so.5.0.8
+40823000-40832000 r-xp 00000000 1f:0a 189        /usr/local/lib/libdirect-1.4.so.5.0.8
+40832000-40839000 ---p 0000f000 1f:0a 189        /usr/local/lib/libdirect-1.4.so.5.0.8
+40839000-4083a000 r-xp 0000e000 1f:0a 189        /usr/local/lib/libdirect-1.4.so.5.0.8
+4083a000-4083b000 rwxp 0000f000 1f:0a 189        /usr/local/lib/libdirect-1.4.so.5.0.8
+4083b000-40870000 r-xp 00000000 1f:0a 202        /usr/local/lib/libpng12.so.0.46.0
+40870000-40877000 ---p 00035000 1f:0a 202        /usr/local/lib/libpng12.so.0.46.0
+40877000-40878000 r-xp 00034000 1f:0a 202        /usr/local/lib/libpng12.so.0.46.0
+40878000-40879000 rwxp 00035000 1f:0a 202        /usr/local/lib/libpng12.so.0.46.0
+40879000-40898000 r-xp 00000000 1f:0a 205        /usr/local/lib/libz.so.1.2.5
+40898000-4089f000 ---p 0001f000 1f:0a 205        /usr/local/lib/libz.so.1.2.5
+4089f000-408a0000 r-xp 0001e000 1f:0a 205        /usr/local/lib/libz.so.1.2.5
+408a0000-408a1000 rwxp 0001f000 1f:0a 205        /usr/local/lib/libz.so.1.2.5
+408a1000-408b2000 r-xp 00000000 1f:0a 187        /usr/local/lib/libbz2.so.1.0.6
+408b2000-408b9000 ---p 00011000 1f:0a 187        /usr/local/lib/libbz2.so.1.0.6
+408b9000-408ba000 r-xp 00010000 1f:0a 187        /usr/local/lib/libbz2.so.1.0.6
+408ba000-408bb000 rwxp 00011000 1f:0a 187        /usr/local/lib/libbz2.so.1.0.6
+408bb000-408d2000 r-xp 00000000 1f:0a 109        /lib/libpthread-2.23.so
+408d2000-408e1000 ---p 00017000 1f:0a 109        /lib/libpthread-2.23.so
+408e1000-408e2000 r-xp 00016000 1f:0a 109        /lib/libpthread-2.23.so
+408e2000-408e3000 rwxp 00017000 1f:0a 109        /lib/libpthread-2.23.so
+408e3000-408e5000 rwxp 00000000 00:00 0 
+408e5000-408eb000 r-xp 00000000 1f:0a 111        /lib/librt-2.23.so
+408eb000-408fa000 ---p 00006000 1f:0a 111        /lib/librt-2.23.so
+408fa000-408fb000 r-xp 00005000 1f:0a 111        /lib/librt-2.23.so
+408fb000-408fc000 rwxp 00006000 1f:0a 111        /lib/librt-2.23.so
+408fc000-409e9000 r-xp 00000000 1f:0a 115        /lib/libstdc++.so.6.0.22
+409e9000-409f9000 ---p 000ed000 1f:0a 115        /lib/libstdc++.so.6.0.22
+409f9000-409fe000 r-xp 000ed000 1f:0a 115        /lib/libstdc++.so.6.0.22
+409fe000-40a01000 rwxp 000f2000 1f:0a 115        /lib/libstdc++.so.6.0.22
+40a01000-40a03000 rwxp 00000000 00:00 0 
+40a03000-40aab000 r-xp 00000000 1f:0a 107        /lib/libm-2.23.so
+40aab000-40aba000 ---p 000a8000 1f:0a 107        /lib/libm-2.23.so
+40aba000-40abb000 r-xp 000a7000 1f:0a 107        /lib/libm-2.23.so
+40abb000-40abc000 rwxp 000a8000 1f:0a 107        /lib/libm-2.23.so
+40abc000-40ada000 r-xp 00000000 1f:0a 106        /lib/libgcc_s.so.1
+40ada000-40ae9000 ---p 0001e000 1f:0a 106        /lib/libgcc_s.so.1
+40ae9000-40aea000 r-xp 0001d000 1f:0a 106        /lib/libgcc_s.so.1
+40aea000-40aeb000 rwxp 0001e000 1f:0a 106        /lib/libgcc_s.so.1
+40aeb000-40c18000 r-xp 00000000 1f:0a 101        /lib/libc-2.23.so
+40c18000-40c27000 ---p 0012d000 1f:0a 101        /lib/libc-2.23.so
+40c27000-40c29000 r-xp 0012c000 1f:0a 101        /lib/libc-2.23.so
+40c29000-40c2a000 rwxp 0012e000 1f:0a 101        /lib/libc-2.23.so
+40c2a000-40c2d000 rwxp 00000000 00:00 0 
+40c2d000-40c2f000 r-xp 00000000 1f:0a 103        /lib/libdl-2.23.so
+40c2f000-40c3e000 ---p 00002000 1f:0a 103        /lib/libdl-2.23.so
+40c3e000-40c3f000 r-xp 00001000 1f:0a 103        /lib/libdl-2.23.so
+40c3f000-40c40000 rwxp 00002000 1f:0a 103        /lib/libdl-2.23.so
+40c4a000-40c55000 r-xp 00000000 1f:0a 182        /usr/local/lib/directfb-1.4-5-pure/systems/libdirectfb_fbdev.so
+40c55000-40c5c000 ---p 0000b000 1f:0a 182        /usr/local/lib/directfb-1.4-5-pure/systems/libdirectfb_fbdev.so
+40c5c000-40c5d000 r-xp 0000a000 1f:0a 182        /usr/local/lib/directfb-1.4-5-pure/systems/libdirectfb_fbdev.so
+40c5d000-40c5e000 rwxp 0000b000 1f:0a 182        /usr/local/lib/directfb-1.4-5-pure/systems/libdirectfb_fbdev.so
+40c5e000-40c5f000 ---p 00000000 00:00 0 
+40c5f000-4145e000 rwxp 00000000 00:00 0 
+4145e000-4145f000 ---p 00000000 00:00 0 
+4145f000-41c5e000 rwxp 00000000 00:00 0 
+41c5e000-41caa000 rwxs 47680000 1f:0a 37         /dev/fb0
+41caa000-41cac000 r-xp 00000000 1f:0a 172        /usr/local/lib/directfb-1.4-5-pure/inputdrivers/libdirectfb_keyboard.so
+41cac000-41cb3000 ---p 00002000 1f:0a 172        /usr/local/lib/directfb-1.4-5-pure/inputdrivers/libdirectfb_keyboard.so
+41cb3000-41cb4000 r-xp 00001000 1f:0a 172        /usr/local/lib/directfb-1.4-5-pure/inputdrivers/libdirectfb_keyboard.so
+41cb4000-41cb5000 rwxp 00002000 1f:0a 172        /usr/local/lib/directfb-1.4-5-pure/inputdrivers/libdirectfb_keyboard.so
+41cb5000-41cb6000 ---p 00000000 00:00 0 
+41cb6000-424b5000 rwxp 00000000 00:00 0 
+424b5000-424c0000 r-xp 00000000 1f:0a 184        /usr/local/lib/directfb-1.4-5-pure/wm/libdirectfbwm_default.so
+424c0000-424c7000 ---p 0000b000 1f:0a 184        /usr/local/lib/directfb-1.4-5-pure/wm/libdirectfbwm_default.so
+424c7000-424c8000 r-xp 0000a000 1f:0a 184        /usr/local/lib/directfb-1.4-5-pure/wm/libdirectfbwm_default.so
+424c8000-424c9000 rwxp 0000b000 1f:0a 184        /usr/local/lib/directfb-1.4-5-pure/wm/libdirectfbwm_default.so
+424c9000-424cb000 r-xp 00000000 1f:0a 178        /usr/local/lib/directfb-1.4-5-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_dfiff.so
+424cb000-424d2000 ---p 00002000 1f:0a 178        /usr/local/lib/directfb-1.4-5-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_dfiff.so
+424d2000-424d3000 r-xp 00001000 1f:0a 178        /usr/local/lib/directfb-1.4-5-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_dfiff.so
+424d3000-424d4000 rwxp 00002000 1f:0a 178        /usr/local/lib/directfb-1.4-5-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_dfiff.so
+424d4000-424d7000 r-xp 00000000 1f:0a 179        /usr/local/lib/directfb-1.4-5-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_png.so
+424d7000-424de000 ---p 00003000 1f:0a 179        /usr/local/lib/directfb-1.4-5-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_png.so
+424de000-424df000 r-xp 00002000 1f:0a 179        /usr/local/lib/directfb-1.4-5-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_png.so
+424df000-424e0000 rwxp 00003000 1f:0a 179        /usr/local/lib/directfb-1.4-5-pure/interfaces/IDirectFBImageProvider/libidirectfbimageprovider_png.so
+424e0000-424e1000 ---p 00000000 00:00 0 
+424e1000-42ce0000 rwxp 00000000 00:00 0 
+42ce0000-42ce1000 ---p 00000000 00:00 0 
+42ce1000-434e0000 rwxp 00000000 00:00 0 
+434e0000-434e1000 ---p 00000000 00:00 0 
+434e1000-43ce0000 rwxp 00000000 00:00 0 
+43ce0000-43ce2000 r-xp 00000000 1f:0a 175        /usr/local/lib/directfb-1.4-5-pure/interfaces/IDirectFBFont/libidirectfbfont_dgiff.so
+43ce2000-43ce9000 ---p 00002000 1f:0a 175        /usr/local/lib/directfb-1.4-5-pure/interfaces/IDirectFBFont/libidirectfbfont_dgiff.so
+43ce9000-43cea000 r-xp 00001000 1f:0a 175        /usr/local/lib/directfb-1.4-5-pure/interfaces/IDirectFBFont/libidirectfbfont_dgiff.so
+43cea000-43ceb000 rwxp 00002000 1f:0a 175        /usr/local/lib/directfb-1.4-5-pure/interfaces/IDirectFBFont/libidirectfbfont_dgiff.so
+43ceb000-43cf0000 r-xp 00000000 1f:0a 176        /usr/local/lib/directfb-1.4-5-pure/interfaces/IDirectFBFont/libidirectfbfont_ft2.so
+43cf0000-43cf7000 ---p 00005000 1f:0a 176        /usr/local/lib/directfb-1.4-5-pure/interfaces/IDirectFBFont/libidirectfbfont_ft2.so
+43cf7000-43cf8000 r-xp 00004000 1f:0a 176        /usr/local/lib/directfb-1.4-5-pure/interfaces/IDirectFBFont/libidirectfbfont_ft2.so
+43cf8000-43cf9000 rwxp 00005000 1f:0a 176        /usr/local/lib/directfb-1.4-5-pure/interfaces/IDirectFBFont/libidirectfbfont_ft2.so
+43d00000-43d21000 rwxp 00000000 00:00 0 
+43d21000-43e00000 ---p 00000000 00:00 0 
+43e00000-43ea0000 r-xs 00000000 1f:0b 78         /ap-app/fonts/gui_latin.ttf
+43ea0000-43ea1000 ---p 00000000 00:00 0 
+43ea1000-446a0000 rwxp 00000000 00:00 0 
+446a0000-446a1000 ---p 00000000 00:00 0 
+446a1000-44ea0000 rwxp 00000000 00:00 0 
+44f00000-44fde000 rwxp 00000000 00:00 0 
+44fde000-45000000 ---p 00000000 00:00 0 
+45000000-4504d000 rwxp 00000000 00:00 0 
+4504d000-45100000 ---p 00000000 00:00 0 
+45100000-451a0000 r-xs 00000000 1f:0b 78         /ap-app/fonts/gui_latin.ttf
+be828000-be84a000 rwxp 00000000 00:00 0          [stack]
