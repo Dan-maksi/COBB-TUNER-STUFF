@@ -4,6 +4,8 @@ Reverse engineering dump for the COBB Accessport V3. Acquired as e-waste, marrie
 
 Findings were posted publicly on automotive forums. This is for research and recovery purposes. Don't use this on hardware you don't own.
 
+I'm not going to actively support this — it was an exercise that has run its course. These are just the scripts I made, dumped here so anyone else interested has a jump start.
+
 ---
 
 ## Hardware & Software Requirements
